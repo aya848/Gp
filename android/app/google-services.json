@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "580802882632",
+    "firebase_url": "https://salamtk-151f4.firebaseio.com",
+    "project_id": "salamtk-151f4",
+    "storage_bucket": "salamtk-151f4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:580802882632:android:f553d7d9d88620af3c7c7d",
+        "android_client_info": {
+          "package_name": "com.example.salamtk"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "580802882632-o087gfo7drpsidkrh619h5pfg25keq83.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAM_rqCVZMkT_nhH8VvbziNVwj442Sf6mY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "580802882632-o087gfo7drpsidkrh619h5pfg25keq83.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
