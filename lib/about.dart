@@ -32,7 +32,7 @@ class About extends StatelessWidget {
                 decoration:BoxDecoration(
                   borderRadius: BorderRadius.all(Radius.circular(20.0)),
                 ) ,
-              ),
+              )
             ],
           ),
         ) ,

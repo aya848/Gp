@@ -1,5 +1,8 @@
+//import 'dart:html';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-//import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:salamtk/welcome.dart';
 //import 'SignUp.dart';
 import 'home.dart';
@@ -10,23 +13,88 @@ class LoginScreen extends StatefulWidget{
 
 class _LoginScreenState extends State<LoginScreen> {
 
- // void initState()
- // {
-   // super.initState();
+  // void initState()
+  // {
+  // super.initState();
   //}
 
   bool _showPassword = false;
- // final _formkey = GlobalKey<FormState>();
-  //TextEditingController _emailcontroller = TextEditingController();
-  //TextEditingController _passwordcontroller = TextEditingController();
+  final _loginFormKey = GlobalKey<FormState>();
+  TextEditingController _emailcontroller = TextEditingController();
+  TextEditingController _passwordcontroller = TextEditingController();
 
-  @override
-  /*void dispose()
-  {
-    _emailcontroller.dispose();
-    _passwordcontroller.dispose();
-    super.dispose();
-  }*/
+  final _auth = FirebaseAuth.instance;
+
+  signIn() async {
+
+
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+        print("Connected to Mobile Network");
+
+        try {
+          final user = await _auth.signInWithEmailAndPassword(
+              email: _emailcontroller.text, password: _passwordcontroller.text);
+          if (user != null) {
+            Navigator.pushReplacement(
+                context,
+                new MaterialPageRoute(
+                    builder: (BuildContext context) => MyHomePage()));
+          }
+
+        } catch (e) {
+
+
+          var errorSigningIn = "لقد حدث خطأ في اتمام العملية !";
+          if (Platform.isAndroid) {
+            switch (e.message) {
+              case 'There is no user record corresponding to this identifier. The user may have been deleted.':
+                errorSigningIn =
+                "لا يوجد مستخدم بهذه المعلومات , قد يكون هناك خطأ في البريد الالكتروني .";
+                break;
+              case 'The password is invalid or the user does not have a password.':
+                errorSigningIn = "كلمة مرور خاطئة .";
+                break;
+              case 'A network error (such as timeout, interrupted connection or unreachable host) has occurred.':
+                errorSigningIn =
+                "خطأ في الاتصال بشبكة الانترنت , تحقق من اتصالك و حاول مرة اخري .";
+                break;
+            // ...
+              default:
+                print('Case ${e.message} is not yet implemented');
+            }
+          } else if (Platform.isIOS) {
+            switch (e.code) {
+              case 'Error 17011':
+                errorSigningIn =
+                "لا يوجد مستخدم بهذه المعلومات , قد يكون هناك خطأ في البريد الالكتروني او كلمة المرور .";
+                break;
+              case 'Error 17009':
+                errorSigningIn = "كلمة مرور خاطئة .";
+                break;
+              case 'Error 17020':
+                errorSigningIn =
+                "خطأ في الاتصال بشبكة الانترنت , تحقق من اتصالك و حاول مرة اخري .";
+                break;
+            // ...
+              default:
+                print('Case ${e.message} is not yet implemented');
+            }
+          }
+
+
+
+          print(e);
+          print(errorSigningIn);
+        }
+      }
+    } on SocketException catch (_) {
+      String invalid = "لا يوجد اتصال بشبكة الانترنت !";
+      print(invalid);
+
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,16 +102,18 @@ class _LoginScreenState extends State<LoginScreen> {
     double height =MediaQuery.of(context).size.height;
     return Scaffold(
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(16),
-        //child: Form(
-            //key: _formkey,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                Directionality(
-                  textDirection: TextDirection.rtl,
-                  child: Container(
-                    width: (width)*4/5,
+          padding: EdgeInsets.all(16),
+          //child: Form(
+          //key: _formkey,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              Directionality(
+                textDirection: TextDirection.rtl,
+                child: Container(
+                  width: (width)*4/5,
+                  child: Form(
+                    key: _loginFormKey,
                     child: Column(
                       children: <Widget>[
                         Container(
@@ -54,10 +124,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         SizedBox(height: 10,),
                         Container(
-                          child: TextField(
+                          child: TextFormField(
                             autocorrect: true,
+                            validator: (text) {
+                              if (text.isEmpty) {
+                                return "برجاء كتابة البريد الالكتروني";
+                              }
+                              if (text.length < 2) {
+                                return "البريد الالكتروني قصير جدا";
+                              }
+                            },
                             keyboardType: TextInputType.visiblePassword,
                             textDirection: TextDirection.rtl,
+                            controller: _emailcontroller,
                             textAlign: TextAlign.right,
                             decoration: InputDecoration(
                               contentPadding: EdgeInsets.all(8),
@@ -80,21 +159,30 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                         /*CustomTextField(
-                          //controller: _emailcontroller,
-                          text: 'البريد اللإلكتروني',
-                          inputType: TextInputType.emailAddress,
-                          icon_1: Icon(Icons.account_circle),
-                          showpassword: true,
-                          obsecure: false,
-                        ),*/
+                            //controller: _emailcontroller,
+                            text: 'البريد اللإلكتروني',
+                            inputType: TextInputType.emailAddress,
+                            icon_1: Icon(Icons.account_circle),
+                            showpassword: true,
+                            obsecure: false,
+                          ),*/
                         SizedBox(
                           height: 20,
                         ),
                         TextFormField(
                           autocorrect: true,
                           obscureText: !this._showPassword,
+                          validator: (text) {
+                            if (text.isEmpty) {
+                              return "برجاء كتابة كلمة المرور";
+                            }
+                            if (text.length <= 5) {
+                              return "كلمة المرور يجب ان لا تقل عن 6 حروف";
+                            }
+                          },
                           keyboardType: TextInputType.visiblePassword,
                           textDirection: TextDirection.rtl,
+                          controller: _passwordcontroller,
                           decoration: InputDecoration(
                             contentPadding: EdgeInsets.all(8),
                             prefixIcon: Icon(Icons.lock_outline),
@@ -124,61 +212,67 @@ class _LoginScreenState extends State<LoginScreen> {
                           ) ,
                         ),
                         /*CustomTextField(
-                          //controller: _passwordcontroller,
-                          text: 'كلمة المرور',
-                          inputType: TextInputType.visiblePassword,
-                          showpassword: false,
-                          obsecure:  !this._showPassword,
-                          icon_1: Icon(Icons.lock_outline),
-                          icon_2:  IconButton(
-                            icon: Icon(
-                              Icons.remove_red_eye,
-                              color: this._showPassword ? Colors.lightBlue : Colors.grey,
+                            //controller: _passwordcontroller,
+                            text: 'كلمة المرور',
+                            inputType: TextInputType.visiblePassword,
+                            showpassword: false,
+                            obsecure:  !this._showPassword,
+                            icon_1: Icon(Icons.lock_outline),
+                            icon_2:  IconButton(
+                              icon: Icon(
+                                Icons.remove_red_eye,
+                                color: this._showPassword ? Colors.lightBlue : Colors.grey,
+                              ),
+                              onPressed: () {
+                                setState(() => this._showPassword = !this._showPassword);
+                              },
                             ),
-                            onPressed: () {
-                              setState(() => this._showPassword = !this._showPassword);
-                            },
-                          ),
-                        ),*/
+                          ),*/
                         SizedBox(height: 20),
                         CustomButton(
-                          text: 'تسجيل الدخول',
-                          callback: (){
-                            Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                builder: (context) {
-                              return MyHomePage();
-                            },
-                            ),
-                            );
-                          } /*async {
-                            //if(_formkey.currentState.validate()){
-                              //var result = await FirebaseAuth.instance.signInWithEmailAndPassword(email: _emailcontroller.text, password: _passwordcontroller.text);
-                              //if(result != null){
-                                // pushReplacement
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => MyHomePage()),
-                                );
-                              //}//else{
-                                //print('عفوا اسم المستخدم غير مسجل');
-                              //}
-                            }*/
+                            text: 'تسجيل الدخول',
+                            callback: (){
 
-                        //),
-                        /*CustomButton(
-                          text: 'إنشاء حساب',
-                          callback: ()async {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => SignUp() ) );
-                          },*/
+                              _loginFormKey.currentState
+                                  .validate()
+                                  ? signIn()
+                                  : print("not valid");
+//                            Navigator.push(
+//                              context,
+//                              MaterialPageRoute(
+//                                builder: (context) {
+//                                  return MyHomePage();
+//                                },
+//                              ),
+//                            );
+                            } /*async {
+                              //if(_formkey.currentState.validate()){
+                                //var result = await FirebaseAuth.instance.signInWithEmailAndPassword(email: _emailcontroller.text, password: _passwordcontroller.text);
+                                //if(result != null){
+                                  // pushReplacement
+                                  Navigator.pushReplacement(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => MyHomePage()),
+                                  );
+                                //}//else{
+                                  //print('عفوا اسم المستخدم غير مسجل');
+                                //}
+                              }*/
+
+                          //),
+                          /*CustomButton(
+                            text: 'إنشاء حساب',
+                            callback: ()async {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => SignUp() ) );
+                            },*/
                         )
                       ],
                     ),
                   ),
                 ),
-              ],
-            )
+              ),
+            ],
+          )
       ),
     );
     //);
